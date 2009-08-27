@@ -17,6 +17,24 @@ def build_url(url_template, values={}):
 def date_from_string(string):
     return datetime(*strptime(string, '%Y-%m-%dT%H:%M:%SZ')[:6])
 
+class TenderCollection(object):
+    def __init__(self, client, url_template, klass):
+        self.client = client
+        self.url_template = url_template
+        self.klass = klass
+
+    def __getitem__(self, key):
+        if isinstance(key, slice):
+            #calculate the pages we need
+            url = build_url(self.url_template)
+            
+            resource = self.client.__get__(url)
+            total, per_page = resource.total, resource.per_page
+            print total, per_page
+        else:
+            print 'not slice'
+    
+    
 class ResponseDict(dict):
     ''' Simple wrapper of dict object, gives access to dict keys as properties'''
     def __getattr__(self, name):
@@ -38,10 +56,8 @@ class TenderClient(object):
         return TenderUser(self.values.profile_href, self)
 
     def discussions(self, page=None, state=None, category=None, user_email=None):
-        url = build_url(self.values.discussions_href)
-        raw_discussions = self.__get__(url)
         
-        return raw_discussions.discussions
+        return TenderCollection(self, self.values.discussions_href, None)
     
     def categories(self, page=None):
         raw_categories = self.__get__(self.values.categories_href)
@@ -121,3 +137,4 @@ class TenderQueue(object):
     pass
 class TenderSection(object):
     pass
+    
