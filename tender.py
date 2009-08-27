@@ -31,26 +31,25 @@ class TenderCollection(object):
         self.url_template = url_template
         self.klass = klass
         self.list_key = list_key
+        
+        url = build_url(self.url_template)
+            
+        self.resource = self.client.__get__(url)
+        self.total, self.per_page = self.resource.total, self.resource.per_page
 
     def __getitem__(self, key):
         if isinstance(key, slice):
-            #calculate the pages we need
-            url = build_url(self.url_template)
-            
-            resource = self.client.__get__(url)
-            total, per_page = resource.total, resource.per_page
-            
             #normalize slice
-            key = slice(*key.indices(total))
+            key = slice(*key.indices(self.total))
             
-            first_page = key.start / per_page + 1
-            last_page = key.stop / per_page + 1
+            #calculate pages we need
+            first_page = key.start / self.per_page + 1
+            last_page = key.stop / self.per_page + 1
             
             #get all needed pages and build complete list
             items = []
             for page in xrange(first_page, last_page + 1):
                 url = build_url(self.url_template, {'page': str(page)})
-                print url
                 items.extend(self.client.__get__(url).get(self.list_key))
             
             #and then slice it, since we could've fetchet more required items
@@ -59,7 +58,7 @@ class TenderCollection(object):
             return [self.klass(self.client, raw_data=ResponseDict(x)) for x in sliced_items]
            
         else:
-            print 'not slice'
+            raise NotImplementedException
     
     
 class TenderUser(object):
