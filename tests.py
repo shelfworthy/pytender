@@ -1,6 +1,6 @@
 import unittest
 
-from tender import Client
+from tender import TenderClient
 
 TENDER_APP = ''
 USER_EMAIL = ''
@@ -8,7 +8,10 @@ USER_PASSWORD = ''
 
 class TenderTest(unittest.TestCase):
     def setUp(self):
-        self.tclient = Client(app_name=TENDER_APP, user=USER_EMAIL, password=USER_PASSWORD)
+        self.tclient = TenderClient(app_name=TENDER_APP, user=USER_EMAIL, password=USER_PASSWORD)
+
+    def test_connection(self):
+        self.assertEquals(self.tclient.permalink, TENDER_APP)
 
     def test_get_categories(self):
         result = self.tclient.get_categories()

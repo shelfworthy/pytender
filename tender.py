@@ -1,10 +1,15 @@
 import urllib2
 from base64 import b64encode
+from datetime import datetime
+from time import strptime
 
 try:
     from django.utils import simplejson
 except ImportError:
     import simplejson
+
+def date_from_string(string):
+    return datetime(*strptime(string, '%Y-%m-%dT%H:%M:%SZ')[:6])
 
 class ResponseDict(dict):
     ''' Simple wrapper of dict object, gives access to dict keys as properties'''
@@ -21,8 +26,11 @@ class TenderClient(object):
         
         self.values = self.__get__('http://api.tenderapp.com/%s' % app_name)
         
-        self.href = self.values.herf
+        self.href = self.values.href
     
+    def profile(self):
+        return TenderProfile(self)
+
     def discussions(self, page=None, state=None, category=None, user_email=None):
         raw_discussions = self.__get__(self.values.discussions_href)
         
@@ -34,9 +42,6 @@ class TenderClient(object):
         # here raw discussion need to be turned into a list of TenderDiscussion objects
     
     def users():
-        pass
-    
-    def profile(self):
         pass
 
     # The stuff that does the work...
@@ -63,19 +68,59 @@ class TenderClient(object):
         response = self._send_query(url)
         return ResponseDict(simplejson.loads(response))
 
-class TenderObject(object):
-    def __init__(self,client):
+class TenderProfile(object):
+    def __init__(self, client):
         self.client = client
+        
+        self.raw_data = self.client.__get__(self.client.values.profile_href)
 
-class TenderProfile(TenderObject):
+    def user(self):
+        return TenderUser(self.raw_data.href, self.client)
+
+class TenderUser(object):
+    def __init__(self, user_href, client):
+        self.client = client
+        
+        self.raw_data = self.client.__get__(user_href)
+
+    @property
+    def email(self):
+        return self.raw_data.email
+
+    @property
+    def name(self):
+        return self.raw_data.name
+
+    @property
+    def state(self):
+        return self.raw_data.state
+
+    @property
+    def title(self):
+        return self.raw_data.title or None
+
+    @property
+    def created_at(self):
+        return date_from_string(self.raw_data.created_at)
+
+    @property
+    def activated_at(self):
+        return date_from_string(self.raw_data.activated_at)
+
+    @property
+    def updated_at(self):
+        return date_from_string(self.raw_data.updated_at)
+
+    def discussions(self, page=None, state=None, category=None, user_email=None):
+        # this should return a list of discussion items based on the paramiters
+        pass
+
+class TenderDiscussion(object):
     pass
-class TenderDiscussion(TenderObject):
+class TenderCategory(object):
     pass
-class TenderCategory(TenderObject):
+
+class TenderQueue(object):
     pass
-class TenderUser(TenderObject):
-    pass
-class TenderQueue(TenderObject):
-    pass
-class TenderSection(TenderObject):
+class TenderSection(object):
     pass
