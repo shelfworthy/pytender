@@ -1,3 +1,6 @@
+import urllib2
+from base64 import b64encode
+
 try:
     from django.utils import simplejson
 except ImportError:
@@ -11,75 +14,68 @@ class ResponseDict(dict):
         except KeyError:
             raise AttributeError(name)
 
-class Client(object):
+class TenderClient(object):
     def __init__(self, app_name, user, password):
-        self.app_name = app_name
         self.user = user
         self.password = password
-        #initial data
-        self.site = self.get_sites()
+        
+        self.values = self.__get__('http://api.tenderapp.com/%s' % app_name)
+        
+        self.href = self.values.herf
+    
+    def discussions(self, page=None, state=None, category=None, user_email=None):
+        raw_discussions = self.__get__(self.values.discussions_href)
+        
+        # here raw discussion need to be turned into a list of TenderDiscussion objects
+    
+    def categories(self, page=None):
+        raw_categories = self.__get__(self.values.categories_href)
+        
+        # here raw discussion need to be turned into a list of TenderDiscussion objects
+    
+    def users():
+        pass
+    
+    def profile(self):
+        pass
 
+    # The stuff that does the work...
     def _send_query(self, url, data=None):
         '''
         Send a query to Tender API
         '''
-        import urllib2
-        from base64 import b64encode
-
+        
         req = urllib2.Request(url=url)
         req.add_header('Accept', 'application/vnd.tender-v1+json')
         req.add_header(
-            'Authorization', 'Basic %s' % b64encode(
-                '%s:%s' % (self.user, self.password)
-            )
+            'Authorization', 'Basic %s' % b64encode('%s:%s' % (self.user, self.password))
         )
         if data:
             req.add_header('Content-Type', 'application/json')
             req.add_data(simplejson.dumps(data))
-
+        
         #print req.get_method(), req.get_data(), req.get_full_url()
-
+        
         f = urllib2.urlopen(req)
         return f.read()
-
-    def _parse_response(self, response):
-        '''
-        Parse JSON response
-        '''
+    
+    def __get__(self, url):
+        response = self._send_query(url)
         return ResponseDict(simplejson.loads(response))
 
-    def __get__(self, url, data=None):
-        response = self._send_query(url, data)
-        return self._parse_response(response)
+class TenderObject(object):
+    def __init__(self,client):
+        self.client = client
 
-    def get_sites(self):
-        return self.__get__('http://api.tenderapp.com/%s' % self.app_name)
-
-    def get_categories(self):
-        return self.__get__('http://api.tenderapp.com/%s/categories' % self.app_name)
-
-    def get_discussions(self):
-        return self.__get__('http://api.tenderapp.com/%s/discussions' % self.app_name)
-
-    def get_queues(self):
-        '''
-        Have no idea why but it always returns 401: Unauthorized
-        '''
-        return self.__get__('http://api.tenderapp.com/%s/queues' % self.app_name)
-
-    def create_discussion(self, data, category=None):
-        '''
-        Creates a discussion from POST data
-        '''
-        url = 'http://api.tenderapp.com/%s/categories/10267/discussions' % self.app_name
-        #if category:
-        #    url = '%s/%s' % (url, category)
-
-        return self.__get__(url, data)
-        
-    def __getattr__(self, name):
-        try:
-            return super(Client, self).__getattr__(name)
-        except AttributeError:
-            return getattr(self.site, name)
-            
+class TenderProfile(TenderObject):
+    pass
+class TenderDiscussion(TenderObject):
+    pass
+class TenderCategory(TenderObject):
+    pass
+class TenderUser(TenderObject):
+    pass
+class TenderQueue(TenderObject):
+    pass
+class TenderSection(TenderObject):
+    pass
