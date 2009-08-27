@@ -17,24 +17,6 @@ def build_url(url_template, values={}):
 def date_from_string(string):
     return datetime(*strptime(string, '%Y-%m-%dT%H:%M:%SZ')[:6])
 
-class TenderCollection(object):
-    def __init__(self, client, url_template, klass):
-        self.client = client
-        self.url_template = url_template
-        self.klass = klass
-
-    def __getitem__(self, key):
-        if isinstance(key, slice):
-            #calculate the pages we need
-            url = build_url(self.url_template)
-            
-            resource = self.client.__get__(url)
-            total, per_page = resource.total, resource.per_page
-            print total, per_page
-        else:
-            print 'not slice'
-    
-    
 class ResponseDict(dict):
     ''' Simple wrapper of dict object, gives access to dict keys as properties'''
     def __getattr__(self, name):
@@ -42,55 +24,40 @@ class ResponseDict(dict):
             return self.__getitem__(name)
         except KeyError:
             raise AttributeError(name)
-
-class TenderClient(object):
-    def __init__(self, app_name, user, password):
-        self.user = user
-        self.password = password
-        
-        self.values = self.__get__('http://api.tenderapp.com/%s' % app_name)
-        
-        self.href = self.values.href
     
-    def profile(self):
-        return TenderUser(self, self.values.profile_href)
+class TenderCollection(object):
+    def __init__(self, client, url_template, klass, list_key):
+        self.client = client
+        self.url_template = url_template
+        self.klass = klass
+        self.list_key = list_key
 
-    def discussions(self, page=None, state=None, category=None, user_email=None):
-        
-        return TenderCollection(self, self.values.discussions_href, None)
+    def __getitem__(self, key):
+        if isinstance(key, slice):
+            #calculate the pages we need
+            url = build_url(self.url_template)
+            
+            resource = self.client.__get__(url)
+            per_page = resource.per_page
+            
+            first_page = key.start / per_page + 1
+            last_page = key.stop / per_page + 1
+            
+            #get all needed pages and build complete list
+            items = []
+            for page in xrange(first_page, last_page + 1):
+                url = build_url(self.url_template, {'page': str(page)})
+                items.extend(self.client.__get__(url).get(self.list_key))
+            
+            #and then slice it, since we could've fetchet more required items
+            sliced_items = items.__getitem__(key)
+            #not just construct proper klass instance for each item
+            return [self.klass(self.client, raw_data=ResponseDict(x)) for x in sliced_items]
+           
+        else:
+            print 'not slice'
     
-    def categories(self, page=None):
-        raw_categories = self.__get__(self.values.categories_href)
-        
-        # here raw discussion need to be turned into a list of TenderDiscussion objects
     
-    def users(self):
-        pass
-
-    # The stuff that does the work...
-    def _send_query(self, url, data=None):
-        '''
-        Send a query to Tender API
-        '''
-        
-        req = urllib2.Request(url=url)
-        req.add_header('Accept', 'application/vnd.tender-v1+json')
-        req.add_header(
-            'Authorization', 'Basic %s' % b64encode('%s:%s' % (self.user, self.password))
-        )
-        if data:
-            req.add_header('Content-Type', 'application/json')
-            req.add_data(simplejson.dumps(data))
-        
-        #print req.get_method(), req.get_data(), req.get_full_url()
-        
-        f = urllib2.urlopen(req)
-        return f.read()
-    
-    def __get__(self, url):
-        response = self._send_query(url)
-        return ResponseDict(simplejson.loads(response))
-
 class TenderUser(object):
     def __init__(self, client, user_href):
         self.client = client
@@ -130,9 +97,12 @@ class TenderUser(object):
         pass
 
 class TenderDiscussion(object):
-    def __init__(self, client, discussion_href=None):
+    def __init__(self, client, discussion_href=None, raw_data=None):
         self.client = client
-        self.raw_data = self.client.__get__(user_href)
+        if not raw_data:
+            self.raw_data = self.client.__get__(user_href)
+        else:
+            self.raw_data = raw_data
         
         if discussion_href:
             self.is_complete = False
@@ -208,4 +178,51 @@ class TenderQueue(object):
     pass
 class TenderSection(object):
     pass
+
     
+class TenderClient(object):
+    def __init__(self, app_name, user, password):
+        self.user = user
+        self.password = password
+        
+        self.values = self.__get__('http://api.tenderapp.com/%s' % app_name)
+        
+        self.href = self.values.href
+    
+    def profile(self):
+        return TenderUser(self, self.values.profile_href)
+
+    def discussions(self, page=None, state=None, category=None, user_email=None):
+        return TenderCollection(self, self.values.discussions_href, TenderDiscussion, 'discussions')
+    
+    def categories(self, page=None):
+        raw_categories = self.__get__(self.values.categories_href)
+        
+        # here raw discussion need to be turned into a list of TenderDiscussion objects
+    
+    def users(self):
+        pass
+
+    # The stuff that does the work...
+    def _send_query(self, url, data=None):
+        '''
+        Send a query to Tender API
+        '''
+        
+        req = urllib2.Request(url=url)
+        req.add_header('Accept', 'application/vnd.tender-v1+json')
+        req.add_header(
+            'Authorization', 'Basic %s' % b64encode('%s:%s' % (self.user, self.password))
+        )
+        if data:
+            req.add_header('Content-Type', 'application/json')
+            req.add_data(simplejson.dumps(data))
+        
+        #print req.get_method(), req.get_data(), req.get_full_url()
+        
+        f = urllib2.urlopen(req)
+        return f.read()
+    
+    def __get__(self, url):
+        response = self._send_query(url)
+        return ResponseDict(simplejson.loads(response))
