@@ -12,7 +12,8 @@ class ResponseDict(dict):
             raise AttributeError(name)
 
 class Client(object):
-    def __init__(self, user, password):
+    def __init__(self, app_name, user, password):
+        self.app_name = app_name
         self.user = user
         self.password = password
         #initial data
@@ -52,25 +53,25 @@ class Client(object):
         return self._parse_response(response)
 
     def get_sites(self):
-        return self.__get__('http://api.tenderapp.com/%s' % settings.TENDER_APP_NAME)
+        return self.__get__('http://api.tenderapp.com/%s' % self.app_name)
 
     def get_categories(self):
-        return self.__get__('http://api.tenderapp.com/%s/categories' % settings.TENDER_APP_NAME)
+        return self.__get__('http://api.tenderapp.com/%s/categories' % self.app_name)
 
     def get_discussions(self):
-        return self.__get__('http://api.tenderapp.com/%s/discussions' % settings.TENDER_APP_NAME)
+        return self.__get__('http://api.tenderapp.com/%s/discussions' % self.app_name)
 
     def get_queues(self):
         '''
         Have no idea why but it always returns 401: Unauthorized
         '''
-        return self.__get__('http://api.tenderapp.com/%s/queues' % settings.TENDER_APP_NAME)
+        return self.__get__('http://api.tenderapp.com/%s/queues' % self.app_name)
 
     def create_discussion(self, data, category=None):
         '''
         Creates a discussion from POST data
         '''
-        url = 'http://api.tenderapp.com/%s/categories/10267/discussions' % settings.TENDER_APP_NAME
+        url = 'http://api.tenderapp.com/%s/categories/10267/discussions' % self.app_name
         #if category:
         #    url = '%s/%s' % (url, category)
 
