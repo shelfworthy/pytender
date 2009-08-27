@@ -35,7 +35,7 @@ class TenderClient(object):
         self.href = self.values.href
     
     def profile(self):
-        return TenderProfile(self)
+        return TenderUser(self.values.profile_href, self)
 
     def discussions(self, page=None, state=None, category=None, user_email=None):
         url = build_url(self.values.discussions_href)
@@ -74,15 +74,6 @@ class TenderClient(object):
     def __get__(self, url):
         response = self._send_query(url)
         return ResponseDict(simplejson.loads(response))
-
-class TenderProfile(object):
-    def __init__(self, client):
-        self.client = client
-        
-        self.raw_data = self.client.__get__(self.client.values.profile_href)
-
-    def user(self):
-        return TenderUser(self.raw_data.href, self.client)
 
 class TenderUser(object):
     def __init__(self, user_href, client):
@@ -126,7 +117,6 @@ class TenderDiscussion(object):
     pass
 class TenderCategory(object):
     pass
-
 class TenderQueue(object):
     pass
 class TenderSection(object):
