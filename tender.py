@@ -1,5 +1,7 @@
-from django.conf import settings
-from django.utils import simplejson
+try:
+    from django.utils import simplejson
+except ImportError:
+    import simplejson
 
 class ResponseDict(dict):
     ''' Simple wrapper of dict object, gives access to dict keys as properties'''
@@ -8,8 +10,6 @@ class ResponseDict(dict):
             return self.__getitem__(name)
         except KeyError:
             raise AttributeError(name)
-        
-
 
 class Client(object):
     def __init__(self, user, password):
