@@ -38,7 +38,10 @@ class TenderCollection(object):
             url = build_url(self.url_template)
             
             resource = self.client.__get__(url)
-            per_page = resource.per_page
+            total, per_page = resource.total, resource.per_page
+            
+            #normalize slice
+            key = slice(*key.indices(total))
             
             first_page = key.start / per_page + 1
             last_page = key.stop / per_page + 1
@@ -47,11 +50,12 @@ class TenderCollection(object):
             items = []
             for page in xrange(first_page, last_page + 1):
                 url = build_url(self.url_template, {'page': str(page)})
+                print url
                 items.extend(self.client.__get__(url).get(self.list_key))
             
             #and then slice it, since we could've fetchet more required items
             sliced_items = items.__getitem__(key)
-            #not just construct proper klass instance for each item
+            #now just construct proper klass instance for each item
             return [self.klass(self.client, raw_data=ResponseDict(x)) for x in sliced_items]
            
         else:
