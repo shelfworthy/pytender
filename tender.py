@@ -3,11 +3,17 @@ from base64 import b64encode
 from datetime import datetime
 from time import strptime
 
+from template_parser import URITemplate
+
 try:
     from django.utils import simplejson
 except ImportError:
     import simplejson
 
+def build_url(url_template, values={}):
+    '''Builds url from template and dict of values'''
+    return URITemplate(url_template).sub(values)
+    
 def date_from_string(string):
     return datetime(*strptime(string, '%Y-%m-%dT%H:%M:%SZ')[:6])
 
@@ -32,16 +38,17 @@ class TenderClient(object):
         return TenderProfile(self)
 
     def discussions(self, page=None, state=None, category=None, user_email=None):
-        raw_discussions = self.__get__(self.values.discussions_href)
+        url = build_url(self.values.discussions_href)
+        raw_discussions = self.__get__(url)
         
-        # here raw discussion need to be turned into a list of TenderDiscussion objects
+        return raw_discussions.discussions
     
     def categories(self, page=None):
         raw_categories = self.__get__(self.values.categories_href)
         
         # here raw discussion need to be turned into a list of TenderDiscussion objects
     
-    def users():
+    def users(self):
         pass
 
     # The stuff that does the work...
