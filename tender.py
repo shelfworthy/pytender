@@ -52,7 +52,7 @@ class TenderCollection(object):
                 url = build_url(self.url_template, {'page': str(page)})
                 items.extend(self.client.__get__(url).get(self.list_key))
             
-            #and then slice it, since we could've fetchet more required items
+            #and then slice it, since we could've fetched more required items
             sliced_items = items.__getitem__(key)
             #now just construct proper klass instance for each item
             return [self.klass(self.client, raw_data=ResponseDict(x)) for x in sliced_items]
@@ -176,7 +176,13 @@ class TenderComment(object):
         return date_from_string(self.raw_data.created_at)
 
 class TenderCategory(object):
-    pass
+    def __init__(self, client, discussion_href=None, raw_data=None):
+        self.client = client
+        if not raw_data:
+            self.raw_data = self.client.__get__(user_href)
+        else:
+            self.raw_data = raw_data
+        
 class TenderQueue(object):
     pass
 class TenderSection(object):
@@ -199,9 +205,7 @@ class TenderClient(object):
         return TenderCollection(self, self.values.discussions_href, TenderDiscussion, 'discussions')
     
     def categories(self, page=None):
-        raw_categories = self.__get__(self.values.categories_href)
-        
-        # here raw discussion need to be turned into a list of TenderDiscussion objects
+        return TenderCollection(self, self.values.categories_href, TenderCategory, 'categories')
     
     def users(self):
         pass
