@@ -94,13 +94,13 @@ class TenderUser(object):
         return date_from_string(self.raw_data.updated_at)
 
     def discussions(self, page=None, state=None, category=None, user_email=None):
-        return TenderCollection(self, self.raw_data.discussions_href, TenderDiscussion, 'discussions')
+        return TenderCollection(self.client, self.raw_data.discussions_href, TenderDiscussion, 'discussions')
 
 class TenderDiscussion(object):
     def __init__(self, client, discussion_href=None, raw_data=None):
         self.client = client
         if not raw_data:
-            self.raw_data = self.client.__get__(user_href)
+            self.raw_data = self.client.__get__(discussion_href)
         else:
             self.raw_data = raw_data
         
@@ -195,7 +195,7 @@ class TenderClient(object):
         
         self.raw_data = self.__get__('http://api.tenderapp.com/%s' % app_name)
         
-        self.href = self.values.href
+        self.href = self.raw_data.href
     
     def profile(self):
         return TenderUser(self, self.raw_data.profile_href)
