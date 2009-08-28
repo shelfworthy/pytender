@@ -59,16 +59,15 @@ class TenderCollection(object):
            
         else:
             raise NotImplementedException
-            
+
     def all(self):
         '''Get all items from all pages'''
         return self.__getitem__(slice(None))
     
-    
+
 class TenderUser(object):
     def __init__(self, client, user_href):
         self.client = client
-        
         self.raw_data = self.client.__get__(user_href)
 
     @property
@@ -100,8 +99,7 @@ class TenderUser(object):
         return date_from_string(self.raw_data.updated_at)
 
     def discussions(self, page=None, state=None, category=None, user_email=None):
-        # this should return a list of discussion items based on the paramiters
-        pass
+        return TenderCollection(self, self.raw_data.discussions_href, TenderDiscussion, 'discussions')
 
 class TenderDiscussion(object):
     def __init__(self, client, discussion_href=None, raw_data=None):
@@ -157,8 +155,10 @@ class TenderComment(object):
     def number(self):
         return self.raw_data.number
 
+    @property
     def body(self):
         return self.raw_data.body
+
     @property
     def via(self):
         return self.raw_data.via
@@ -198,18 +198,18 @@ class TenderClient(object):
         self.user = user
         self.password = password
         
-        self.values = self.__get__('http://api.tenderapp.com/%s' % app_name)
+        self.raw_data = self.__get__('http://api.tenderapp.com/%s' % app_name)
         
         self.href = self.values.href
     
     def profile(self):
-        return TenderUser(self, self.values.profile_href)
+        return TenderUser(self, self.raw_data.profile_href)
 
     def discussions(self, page=None, state=None, category=None, user_email=None):
-        return TenderCollection(self, self.values.discussions_href, TenderDiscussion, 'discussions')
+        return TenderCollection(self, self.raw_data.discussions_href, TenderDiscussion, 'discussions')
     
     def categories(self, page=None):
-        return TenderCollection(self, self.values.categories_href, TenderCategory, 'categories')
+        return TenderCollection(self, self.raw_data.categories_href, TenderCategory, 'categories')
     
     def users(self):
         pass
