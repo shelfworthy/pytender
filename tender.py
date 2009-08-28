@@ -58,7 +58,8 @@ class TenderCollection(object):
             return [self.klass(self.client, raw_data=ResponseDict(x)) for x in sliced_items]
            
         else:
-            raise NotImplementedException
+            #slice the single item
+            return self.__getitem__(slice(key, key + 1))[0]
 
     def all(self):
         '''Get all items from all pages'''
@@ -200,7 +201,7 @@ class TenderClient(object):
         
         self.raw_data = self.__get__('http://api.tenderapp.com/%s' % app_name)
         
-        self.href = self.values.href
+        self.href = self.raw_data.href
     
     def profile(self):
         return TenderUser(self, self.raw_data.profile_href)
