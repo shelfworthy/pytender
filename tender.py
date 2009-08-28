@@ -59,6 +59,10 @@ class TenderCollection(object):
            
         else:
             raise NotImplementedException
+            
+    def all(self):
+        '''Get all items from all pages'''
+        return self.__getitem__(slice(None))
     
     
 class TenderUser(object):
