@@ -59,12 +59,10 @@ class TenderCollection(object):
            
         else:
             raise NotImplementedException
-    
-    
+
 class TenderUser(object):
     def __init__(self, client, user_href):
         self.client = client
-        
         self.raw_data = self.client.__get__(user_href)
 
     @property
@@ -153,8 +151,10 @@ class TenderComment(object):
     def number(self):
         return self.raw_data.number
 
+    @property
     def body(self):
         return self.raw_data.body
+
     @property
     def via(self):
         return self.raw_data.via
