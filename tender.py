@@ -103,7 +103,7 @@ class TenderDiscussion(object):
         else:
             self.raw_data = raw_data
         
-        if discussion_href:
+        if not discussion_href:
             self.is_complete = False
         else:
             self.is_complete = True
@@ -137,7 +137,7 @@ class TenderDiscussion(object):
             self.fetch_more()
         comments = []
         for raw_comment in self.raw_data.comments:
-            comments.append(TenderComment(self.client, raw_comment))
+            comments.append(TenderComment(self.client, ResponseDict(raw_comment)))
         return comments
 
 class TenderComment(object):
