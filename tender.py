@@ -4,6 +4,7 @@ from datetime import datetime
 from time import strptime
 
 from template_parser import URITemplate
+import math
 
 try:
     from django.utils import simplejson
@@ -25,45 +26,37 @@ class ResponseDict(dict):
         except KeyError:
             raise AttributeError(name)
     
-class TenderCollection(object):
+class TenderCollection(list):
     def __init__(self, client, url_template, klass, list_key):
         self.client = client
         self.url_template = url_template
         self.klass = klass
         self.list_key = list_key
         
+        self = self._get_items()
+        
+    def _get_items(self):
         url = build_url(self.url_template)
             
         self.resource = self.client.__get__(url)
         self.total, self.per_page = self.resource.total, self.resource.per_page
+        
+        #calculate pages we need
+        pages = int(math.ceil( float(self.total) / float(self.per_page) ))
+        
+        #get all needed pages and build complete list
+        for page in xrange(1, pages + 1):
+            url = build_url(self.url_template, {'page': str(page)})
+            self.extend(
+                [self.klass(self.client, raw_data = ResponseDict(x)) for x in self.client.__get__(url).get(self.list_key)]
+                )
+        
+        
+        
+        
 
-    def __getitem__(self, key):
-        if isinstance(key, slice):
-            #normalize slice
-            key = slice(*key.indices(self.total))
-            
-            #calculate pages we need
-            first_page = key.start / self.per_page + 1
-            last_page = key.stop / self.per_page + 1
-            
-            #get all needed pages and build complete list
-            items = []
-            for page in xrange(first_page, last_page + 1):
-                url = build_url(self.url_template, {'page': str(page)})
-                items.extend(self.client.__get__(url).get(self.list_key))
-            
-            #and then slice it, since we could've fetched more required items
-            sliced_items = items.__getitem__(key)
-            #now just construct proper klass instance for each item
-            return [self.klass(self.client, raw_data=ResponseDict(x)) for x in sliced_items]
-           
-        else:
-            #slice the single item
-            return self.__getitem__(slice(key, key + 1))[0]
-
-    def all(self):
-        '''Get all items from all pages'''
-        return self.__getitem__(slice(None))
+    
+        
     
 
 class TenderUser(object):
