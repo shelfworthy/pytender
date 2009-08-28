@@ -58,7 +58,13 @@ class TenderCollection(object):
             return [self.klass(self.client, raw_data=ResponseDict(x)) for x in sliced_items]
            
         else:
-            raise NotImplementedException
+            #slice the single item
+            return self.__getitem__(slice(key, key + 1))[0]
+
+    def all(self):
+        '''Get all items from all pages'''
+        return self.__getitem__(slice(None))
+    
 
 class TenderUser(object):
     def __init__(self, client, user_href):
