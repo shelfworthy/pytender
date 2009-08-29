@@ -17,27 +17,27 @@ Examples
 
 ### we can get info on the current user:
 
->> tender.profile().name
-u'Chris Drackett'
+	>> tender.profile().name
+	u'Chris Drackett'
 
 ### dates are converted into datetime objects.
 
->> tender.profile().created_at
-datetime.datetime(2009, 8, 26, 21, 28, 5) 
+	>> tender.profile().created_at
+	datetime.datetime(2009, 8, 26, 21, 28, 5) 
 
 ### TenderUser can be used to get all the discussions for that user...
 
->> discussions = tender.profile().discussions()
+	>> discussions = tender.profile().discussions()
 
->> discussions.total
-53
+	>> len(discussions)
+	53
 
->> discussions[1].title
-u'discussion title'
+	>> discussions[1].title
+	u'discussion title'
 
->> discussions[1].public
-True
+	>> discussions[1].public
+	True
 
 ### And then comments for that discussion
 
->> discussions[1].comments()
+	>> discussions[1].comments()
