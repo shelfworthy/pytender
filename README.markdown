@@ -13,7 +13,7 @@ just add tender.py to your python path.
 Examples
 --------
 
->> tender = TenderClient('appname', 'user email', 'user password')
+	>> tender = TenderClient('appname', 'user email', 'user password')
 
 ### we can get info on the current user:
 
