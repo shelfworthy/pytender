@@ -28,42 +28,53 @@ class ResponseDict(dict):
     
 class TenderCollection(list):
     def __init__(self, client, url_template, klass, list_key):
-        self.client = client
-        self.url_template = url_template
-        self.klass = klass
-        self.list_key = list_key
+        self.client = client #TenderClient instance
+        self.url_template = url_template #template of item list url
+        self.klass = klass #class to instanciate each object in list
+        self.list_key = list_key #key in response dict, that holds item list
         
-        self = self._get_items()
+        self = self._load_items()
         
-    def _get_items(self):
+    def _load_items(self):
         url = build_url(self.url_template)
             
-        self.resource = self.client.__get__(url)
-        self.total, self.per_page = self.resource.total, self.resource.per_page
+        resource = self.client.__get__(url)
+        #add items from first page
+        self._add_to_list(resource.get(self.list_key))
         
-        #calculate pages we need
+        self.total, self.per_page = resource.total, resource.per_page
+        
+        #how many pages are there
         pages = int(math.ceil( float(self.total) / float(self.per_page) ))
         
-        #get all needed pages and build complete list
-        for page in xrange(1, pages + 1):
+        #get all needed pages and build complete list (remember we already have first page)
+        for page in xrange(2, pages + 1):
             url = build_url(self.url_template, {'page': str(page)})
-            self.extend(
-                [self.klass(self.client, raw_data = ResponseDict(x)) for x in self.client.__get__(url).get(self.list_key)]
-                )
+            self._add_to_list(self.client.__get__(url).get(self.list_key))
+                
+    def _add_to_list(self, items):
+        '''Adds each item from items to self'''
+        self.extend([self.klass(self.client, raw_data = ResponseDict(x)) for x in items])
         
         
         
-        
-
+class TenderResource(object):
+    '''Any resource like category, discussion, comment
+    Loads itself from give resource_href if no raw_data given'''
     
-        
-    
-
-class TenderUser(object):
-    def __init__(self, client, user_href):
+    def __init__(self, client, resource_href=None, raw_data=None):
         self.client = client
-        self.raw_data = self.client.__get__(user_href)
+        
+        if not raw_data:
+            self.raw_data = self.client.__get__(user_href)
+        else:
+            self.raw_data = raw_data
 
+    
+        
+    
+
+class TenderUser(TenderResource):
     @property
     def email(self):
         return self.raw_data.email
@@ -95,26 +106,13 @@ class TenderUser(object):
     def discussions(self, page=None, state=None, category=None, user_email=None):
         return TenderCollection(self.client, self.raw_data.discussions_href, TenderDiscussion, 'discussions')
 
-class TenderDiscussion(object):
-    def __init__(self, client, discussion_href=None, raw_data=None):
-        self.client = client
-        if not raw_data:
-            self.raw_data = self.client.__get__(discussion_href)
-        else:
-            self.raw_data = raw_data
-        
-        if not discussion_href:
-            self.is_complete = False
-        else:
-            self.is_complete = True
-            
-
+class TenderDiscussion(TenderResource):
     def fetch_more(self):
         ''' if this discussion is from a list, this function 
         will fetch things like the comments that are only available when
         getting a discussion by itself'''
         self.raw_data = self.client.__get__(self.raw_data.href)
-        self.is_complete = True
+        
 
     @property
     def number(self):
@@ -133,18 +131,15 @@ class TenderDiscussion(object):
         return self.raw_data.public
 
     def comments(self):
-        if not self.is_complete:
+        if 'comments' not in self.raw_data:
             self.fetch_more()
+        
         comments = []
         for raw_comment in self.raw_data.comments:
             comments.append(TenderComment(self.client, ResponseDict(raw_comment)))
         return comments
 
-class TenderComment(object):
-    def __init__(self, client, raw_comment):
-        self.client = client
-        self.raw_data = raw_comment
-
+class TenderComment(TenderResource):
     @property
     def number(self):
         return self.raw_data.number
@@ -173,13 +168,8 @@ class TenderComment(object):
     def created_at(self):
         return date_from_string(self.raw_data.created_at)
 
-class TenderCategory(object):
-    def __init__(self, client, discussion_href=None, raw_data=None):
-        self.client = client
-        if not raw_data:
-            self.raw_data = self.client.__get__(user_href)
-        else:
-            self.raw_data = raw_data
+class TenderCategory(TenderResource):
+    pass
         
 class TenderQueue(object):
     pass
