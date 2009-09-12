@@ -32,7 +32,6 @@ class TenderCollection(list):
         self.url_template = url_template #template of item list url
         self.klass = klass #class to instanciate each object in list
         self.list_key = list_key #key in response dict, that holds item list
-        
         self = self._load_items()
         
     def _load_items(self):
@@ -55,9 +54,10 @@ class TenderCollection(list):
     def _add_to_list(self, items):
         '''Adds each item from items to self'''
         self.extend([self.klass(self.client, raw_data = ResponseDict(x)) for x in items])
-        
-        
-        
+
+    def count(self):
+        return self.total
+
 class TenderResource(object):
     '''Any resource like category, discussion, comment
     Loads itself from give resource_href if no raw_data given'''
@@ -145,6 +145,10 @@ class TenderComment(TenderResource):
         return self.raw_data.number
 
     @property
+    def formatted_body(self):
+        return self.raw_data.formatted_body
+
+    @property
     def body(self):
         return self.raw_data.body
 
@@ -174,9 +178,11 @@ class TenderCategory(TenderResource):
         return self.raw_data.name
     
     @property
-    def summary(self, formated=True):
-        if formated:
-            return self.raw_data.formatted_summary
+    def formatted_summary(self):
+        return self.raw_data.formatted_summary
+
+    @property
+    def summary(self):
         return self.raw_data.summary
     
     @property
@@ -195,7 +201,6 @@ class TenderQueue(object):
 class TenderSection(object):
     pass
 
-    
 class TenderClient(object):
     def __init__(self, app_name, user, password):
         self.user = user

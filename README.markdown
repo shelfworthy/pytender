@@ -23,13 +23,13 @@ Examples
 ### dates are converted into datetime objects.
 
 	>> tender.profile().created_at
-	datetime.datetime(2009, 8, 26, 21, 28, 5) 
+	datetime.datetime(2009, 8, 26, 21, 28, 5)
 
 ### TenderUser can be used to get all the discussions for that user...
 
 	>> discussions = tender.profile().discussions()
 
-	>> len(discussions)
+	>> discussions.count()
 	53
 
 	>> discussions[1].title
@@ -40,4 +40,28 @@ Examples
 
 ### And then comments for that discussion
 
-	>> discussions[1].comments()
+	>> comments = discussions[1].comments()
+
+	>> comments[0].formatted_body
+	u'<div><p>this is the comment body</p></div>'
+
+	>> comments[0].user().name
+	u'Chris Drackett
+
+	>> comments[0].created_at
+	datetime.datetime(2009, 9, 12, 3, 21, 14)
+
+### From the tender API object we can also get categories
+
+	>> all_categories = tender.categories()
+
+	>> all_categories[0].name
+	u'Questions'
+
+	>> all_categories[0].summary
+	u'Ask us anything!'
+
+	>> question_discussions = all_categories[0].discussions()
+
+	>> question_discussions[0].title
+	u'This is a question'
