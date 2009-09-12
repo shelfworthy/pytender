@@ -66,13 +66,9 @@ class TenderResource(object):
         self.client = client
         
         if not raw_data:
-            self.raw_data = self.client.__get__(user_href)
+            self.raw_data = self.client.__get__(resource_href)
         else:
             self.raw_data = raw_data
-
-    
-        
-    
 
 class TenderUser(TenderResource):
     @property
