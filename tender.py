@@ -123,6 +123,10 @@ class TenderDiscussion(TenderResource):
         return TenderUser(self.client, self.raw_data.user_href)
 
     @property
+    def category(self):
+        return TenderCategory(self.client, self.raw_data.category_href)
+
+    @property
     def public(self):
         return self.raw_data.public
 
@@ -132,7 +136,7 @@ class TenderDiscussion(TenderResource):
         
         comments = []
         for raw_comment in self.raw_data.comments:
-            comments.append(TenderComment(self.client, ResponseDict(raw_comment)))
+            comments.append(TenderComment(self.client, raw_data=ResponseDict(raw_comment)))
         return comments
 
 class TenderComment(TenderResource):
@@ -165,8 +169,27 @@ class TenderComment(TenderResource):
         return date_from_string(self.raw_data.created_at)
 
 class TenderCategory(TenderResource):
-    pass
-        
+    @property
+    def name(self):
+        return self.raw_data.name
+    
+    @property
+    def summary(self, formated=True):
+        if formated:
+            return self.raw_data.formatted_summary
+        return self.raw_data.summary
+    
+    @property
+    def public(self):
+        return self.raw_data.public
+    
+    @property
+    def accept_email(self):
+        return self.raw_data.accept_email
+    
+    def discussions(self, page=None, state=None, user_email=None):
+        return TenderCollection(self.client, self.raw_data.discussions_href, TenderDiscussion, 'discussions')
+
 class TenderQueue(object):
     pass
 class TenderSection(object):
