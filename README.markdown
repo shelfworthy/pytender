@@ -1,17 +1,24 @@
+pytender is a python API wrapper for the wonderful tender support service (http://tenderapp.com)
+
+This wrapper is currently a work in progress and doesn't support the entire tender API yet. However, I think we currently have a good base. If you like the API wrapper and would like to help out, please fork it and do so!
+
+Please direct all bugs and feature requests to the lighthouse page for this project:
+
+http://chrisdrackett.lighthouseapp.com/projects/37333-python-tender/overview
+
 Requirements
-------------
+============
 
 * python 2.5+
 * [tpg](http://christophe.delord.free.fr/tpg/index.html)
 
-
 Installation
-------------
+============
 
 just add tender.py to your python path.
 
 Examples
---------
+========
 
 	>> tender = TenderClient('appname', 'user email', 'user password')
 
