@@ -11,8 +11,15 @@ try:
 except ImportError:
     import simplejson
 
-def build_url(url_template, values={}):
+def build_url(url_template, values=None):
     '''Builds url from template and dict of values'''
+    if not values:
+        values = {}
+    else:
+        #make sure that values are strings
+        for x in values:
+            values[x] = str(values[x])
+    
     return URITemplate(url_template).sub(values)
     
 def date_from_string(string):
@@ -48,7 +55,7 @@ class TenderCollection(list):
         
         #get all needed pages and build complete list (remember we already have first page)
         for page in xrange(2, pages + 1):
-            url = build_url(self.url_template, {'page': str(page)})
+            url = build_url(self.url_template, {'page': page})
             self._add_to_list(self.client.__get__(url).get(self.list_key))
                 
     def _add_to_list(self, items):
@@ -69,7 +76,16 @@ class TenderResource(object):
             self.raw_data = self.client.__get__(resource_href)
         else:
             self.raw_data = raw_data
-
+            
+    def do_action(self, action_name, **kwargs):
+        action_key = action_name + '_href'
+        if action_key in self.raw_data:
+            url = build_url(self.raw_data[action_key], kwargs)
+            #stub data to make urllib2 use POST
+            return self.client.__get__(url, data='post') 
+        else:
+            raise AttributeError('Unknown action')
+    
 class TenderUser(TenderResource):
     @property
     def email(self):
@@ -242,6 +258,7 @@ class TenderClient(object):
         f = urllib2.urlopen(req)
         return f.read()
     
-    def __get__(self, url):
-        response = self._send_query(url)
+    def __get__(self, url, data=None):
+        response = self._send_query(url, data)
         return ResponseDict(simplejson.loads(response))
+
