@@ -143,7 +143,7 @@ class TenderDiscussion(TenderResource):
         return TenderCategory(self.client, self.raw_data.category_href)
 
     @property
-    def public(self):
+    def is_public(self):
         return self.raw_data.public
 
     def comments(self):
@@ -154,6 +154,27 @@ class TenderDiscussion(TenderResource):
         for raw_comment in self.raw_data.comments:
             comments.append(TenderComment(self.client, raw_data=ResponseDict(raw_comment)))
         return comments
+
+    # action shortcuts
+    
+    def toggle(self):
+        self.raw_data = self.do_action('toggle')
+        if self.is_public == True:
+            return u'Public'
+        return u'Private'
+    
+    def resolve(self):
+        self.raw_data = self.do_action('resolve')
+    
+    def unresolve(self):
+        self.raw_data = self.do_action('unresolve')
+    
+    def acknowledge(self):
+        self.raw_data = self.do_action('acknowledge')
+
+    def change_category(self, category_id=None):
+        self.raw_data = self.do_action('change_category', category_id=category_id)
+        return self.category
 
 class TenderComment(TenderResource):
     @property

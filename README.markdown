@@ -6,6 +6,7 @@ Please direct all bugs and feature requests to the lighthouse page for this proj
 
 http://chrisdrackett.lighthouseapp.com/projects/37333-python-tender/overview
 
+
 Requirements
 ============
 
@@ -42,8 +43,16 @@ Examples
 	>> discussions[1].title
 	u'discussion title'
 
-	>> discussions[1].public
+	>> discussions[1].is_public
 	True
+
+### Actions can be taken on the discussion
+
+	>> discussions[1].toggle()
+	u'Public' # returns the new state
+
+	>> discussions[1].change_category('123')
+	u'Public' # returns the new state
 
 ### And then comments for that discussion
 
