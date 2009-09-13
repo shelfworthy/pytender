@@ -81,3 +81,8 @@ Examples
 
 	>> question_discussions[0].title
 	u'This is a question'
+	
+### We can create discussions from category object
+	>> all_categories[0].create_discussion('Title', 'Body')
+	
+	>> all_categories[0].create_discussion('Title', 'Body', author_email='email', skip_spam=True)
