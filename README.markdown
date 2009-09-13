@@ -82,7 +82,12 @@ Examples
 	>> question_discussions[0].title
 	u'This is a question'
 	
-### We can create discussions from category object
+### We can create discussions from category object using the signed in user
+
 	>> all_categories[0].create_discussion('Title', 'Body')
-	
+	<tender.TenderDiscussion object at 0x1011bafd0>
+
+### Or using another user by e-mail address
+
 	>> all_categories[0].create_discussion('Title', 'Body', author_email='email', skip_spam=True)
+	<tender.TenderDiscussion object at 0x1011bafd0>
