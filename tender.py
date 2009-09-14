@@ -211,8 +211,16 @@ class TenderComment(TenderResource):
 
 class TenderCategory(TenderResource):
     @property
+    def id(self):
+        return int(self.raw_data.href.split('/')[-1])
+
+    @property
     def name(self):
         return self.raw_data.name
+    
+    @property
+    def permalink(self):
+        return self.raw_data.permalink
     
     @property
     def formatted_summary(self):
@@ -275,7 +283,25 @@ class TenderClient(object):
         return TenderCollection(self, self.raw_data.categories_href, TenderCategory, 'categories')
     
     def users(self):
-        pass
+        return TenderCollection(self, self.raw_data.users_href, TenderUser, 'users')
+
+    def create_discussion(self, title, body, category_id, author_email=None, author_name=None, **kwargs):
+        '''
+        creates discussion inside this category
+        any additional data can be passed in keyword args
+        '''
+        url = build_url(self.raw_data['categories_href']) + '/%s/discussions' % category_id
+        payload = dict(title=title, body=body)
+        
+        if author_email:
+            payload['author_email'] = author_email
+        else:
+            payload['author_email'] = self.client.user
+        
+        #additional arguments
+        payload.update(kwargs)
+        
+        return TenderDiscussion(self, raw_data=self.__get__(url, payload))
 
     # The stuff that does the work...
     def _send_query(self, url, data=None):
