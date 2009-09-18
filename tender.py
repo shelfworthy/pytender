@@ -241,13 +241,13 @@ class TenderCategory(TenderResource):
     def discussions(self, page=None, state=None, user_email=None):
         return TenderCollection(self.client, self.raw_data.discussions_href, TenderDiscussion, 'discussions')
         
-    def create_discussion(self, title, body, author_email=None, author_name=None, **kwargs):
+    def create_discussion(self, title, body, author_email=None, author_name=None, public=True, **kwargs):
         '''
         creates discussion inside this category
         any additional data can be passed in keyword args
         '''
         url = build_url(self.raw_data['discussions_href'])
-        payload = dict(title=title, body=body)
+        payload = dict(title=title, body=body, public=public)
         
         if author_email:
             payload['author_email'] = author_email
@@ -285,13 +285,14 @@ class TenderClient(object):
     def users(self):
         return TenderCollection(self, self.raw_data.users_href, TenderUser, 'users')
 
-    def create_discussion(self, title, body, category_id, author_email=None, author_name=None, **kwargs):
+    def create_discussion(self, title, body, category_id, author_email=None, author_name=None, public=True, **kwargs):
         '''
         creates discussion inside this category
         any additional data can be passed in keyword args
         '''
         url = build_url(self.raw_data['categories_href']) + '/%s/discussions' % category_id
-        payload = dict(title=title, body=body)
+        
+        payload = dict(title=title, body=body, public=public)
         
         if author_email:
             payload['author_email'] = author_email
