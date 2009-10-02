@@ -43,6 +43,9 @@ Examples
 	>> discussions[1].title
 	u'discussion title'
 
+	>> discussions[1].href
+	u'http://your.tenderapp.com/discussions/questions/1'
+
 	>> discussions[1].is_public
 	True
 
@@ -73,6 +76,9 @@ Examples
 
 	>> all_categories[0].name
 	u'Questions'
+
+	>> all_categories[0].href
+	u'http://your.tenderapp.com/discussions/questions'
 
 	>> all_categories[0].summary
 	u'Ask us anything!'

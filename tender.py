@@ -43,7 +43,7 @@ class TenderCollection(list):
         
     def _load_items(self):
         url = build_url(self.url_template)
-            
+        
         resource = self.client.__get__(url)
         #add items from first page
         self._add_to_list(resource.get(self.list_key))
@@ -57,11 +57,11 @@ class TenderCollection(list):
         for page in xrange(2, pages + 1):
             url = build_url(self.url_template, {'page': page})
             self._add_to_list(self.client.__get__(url).get(self.list_key))
-                
+    
     def _add_to_list(self, items):
         '''Adds each item from items to self'''
         self.extend([self.klass(self.client, raw_data = ResponseDict(x)) for x in items])
-
+    
     def count(self):
         return self.total
 
@@ -76,7 +76,14 @@ class TenderResource(object):
             self.raw_data = self.client.__get__(resource_href)
         else:
             self.raw_data = raw_data
-            
+    
+    @property
+    def href(self):
+        try:
+            return self.raw_data.html_href
+        except AttributeError:
+            return None
+    
     def do_action(self, action_name, **kwargs):
         action_key = action_name + '_href'
         if action_key in self.raw_data:
