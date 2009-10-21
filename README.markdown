@@ -1,4 +1,4 @@
-pytender is a python API wrapper for the wonderful tender support service (http://tenderapp.com)
+pytender is a python API wrapper for the wonderful [tender](http://tenderapp.com) support service 
 
 This wrapper is currently a work in progress and doesn't support the entire tender API yet. However, I think we currently have a good base. If you like the API wrapper and would like to help out, please fork it and do so!
 
