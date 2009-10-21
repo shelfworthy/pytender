@@ -2,10 +2,7 @@ pytender is a python API wrapper for the wonderful tender support service (http:
 
 This wrapper is currently a work in progress and doesn't support the entire tender API yet. However, I think we currently have a good base. If you like the API wrapper and would like to help out, please fork it and do so!
 
-Please direct all bugs and feature requests to the lighthouse page for this project:
-
-http://chrisdrackett.lighthouseapp.com/projects/37333-python-tender/overview
-
+Please direct all bugs and feature requests to the [lighthouse](http://chrisdrackett.lighthouseapp.com/projects/37333-python-django-tender) page for this project.
 
 Requirements
 ============
