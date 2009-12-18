@@ -292,14 +292,14 @@ class TenderClient(object):
     def users(self):
         return TenderCollection(self, self.raw_data.users_href, TenderUser, 'users')
 
-    def create_discussion(self, title, body, category_id, author_email=None, author_name=None, public=True, **kwargs):
+    def create_discussion(self, title, body, category_id, author_email=None, author_name=None, public=True, skip_spam=True, **kwargs):
         '''
         creates discussion inside this category
         any additional data can be passed in keyword args
         '''
         url = build_url(self.raw_data['categories_href']) + '/%s/discussions' % category_id
         
-        payload = dict(title=title, body=body, public=public)
+        payload = dict(title=title, body=body, public=public, skip_spam=skip_spam)
         
         if author_email:
             payload['author_email'] = author_email
@@ -326,7 +326,7 @@ class TenderClient(object):
             req.add_header('Content-Type', 'application/json')
             req.add_data(simplejson.dumps(data))
         
-        #print req.get_method(), req.get_data(), req.get_full_url()
+        print req.get_method(), req.get_data(), req.get_full_url()
         
         f = urllib2.urlopen(req)
         return f.read()
