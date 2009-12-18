@@ -326,7 +326,7 @@ class TenderClient(object):
             req.add_header('Content-Type', 'application/json')
             req.add_data(simplejson.dumps(data))
         
-        print req.get_method(), req.get_data(), req.get_full_url()
+        #print req.get_method(), req.get_data(), req.get_full_url()
         
         f = urllib2.urlopen(req)
         return f.read()
