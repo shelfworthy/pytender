@@ -12,16 +12,33 @@ Requirements
 
 * python 2.5+
 * [tpg](http://christophe.delord.free.fr/tpg/index.html)
+* [M2Crypto](http://chandlerproject.org/bin/view/Projects/MeTooCrypto)
 
 Installation
 ============
 
 just add tender.py to your python path.
 
+Multipass Login
+===============
+
+This app supports tender's multipass login. This currently works like so:
+
+### Connect to tender and create a tender client:
+
+	>> tender = TenderClient('appname', 'secret', 'user email')
+
+### you can then use the client to get a multipass login url:
+
+	>> tender.multipass_url('your_app.tenderapp.com', tender.multipass())
+	http://your_app.tenderapp.com?sso=somemultipasshere
+
+### this url can be used to the user with the email above to your tender site
+
 Examples
 ========
 
-	>> tender = TenderClient('appname', 'user email', 'user password')
+	>> tender = TenderClient('appname', 'secret', 'user email')
 
 ### we can get info on the current user:
 
@@ -95,5 +112,5 @@ Examples
 
 ### Or using another user by e-mail address
 
-	>> all_categories[0].create_discussion('Title', 'Body', author_email='email', skip_spam=True)
+	>> all_categories[0].create_discussion('Title', 'Body', author_email='email')
 	<tender.TenderDiscussion object at 0x1011bafd0>

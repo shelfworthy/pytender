@@ -1,10 +1,10 @@
-import urllib2
+import urllib2, math
 from base64 import b64encode
-from datetime import datetime
+from datetime import datetime, timedelta
 from time import strptime
 
+from multipass import MultiPass
 from template_parser import URITemplate
-import math
 
 try:
     from django.utils import simplejson
@@ -131,8 +131,7 @@ class TenderDiscussion(TenderResource):
         will fetch things like the comments that are only available when
         getting a discussion by itself'''
         self.raw_data = self.client.__get__(self.raw_data.href)
-        
-
+    
     @property
     def number(self):
         return self.raw_data.number
@@ -248,37 +247,60 @@ class TenderCategory(TenderResource):
     def discussions(self, page=None, state=None, user_email=None):
         return TenderCollection(self.client, self.raw_data.discussions_href, TenderDiscussion, 'discussions')
         
-    def create_discussion(self, title, body, author_email=None, author_name=None, public=True, skip_spam=True, **kwargs):
-        '''
-        creates discussion inside this category
-        any additional data can be passed in keyword args
-        '''
-        url = build_url(self.raw_data['discussions_href'])
-        payload = dict(title=title, body=body, public=public, skip_spam=skip_spam)
-        
-        if author_email:
-            payload['author_email'] = author_email
-        else:
-            payload['author_email'] = self.client.user
-        
-        #additional arguments
-        payload.update(kwargs)
-        
-        return TenderDiscussion(self.client, raw_data=self.client.__get__(url, payload))
+    def create_discussion(self, title, body, author_email=None, public=True, **kwargs):
+        return self.client.create_discussion(self, title, body, self.id, author_email=None, public=True, **kwargs)
 
 class TenderQueue(object):
     pass
+
 class TenderSection(object):
     pass
 
 class TenderClient(object):
-    def __init__(self, app_name, user, password):
-        self.user = user
-        self.password = password
+    def __init__(self, app_name, secret, user_email, user_id=None):
+        self.user_email = user_email
+        self.user_id = user_id
+        self.app_name = app_name
+        self.secret = secret
         
         self.raw_data = self.__get__('http://api.tenderapp.com/%s' % app_name)
         
         self.href = self.raw_data.href
+    
+    def multipass(self, expires=None, username=None, email=None, unique_id=None, trusted=True, avatar_url=None, extras=None):
+        '''
+            takes required (any any number of extra) args and creates a multipass url
+            for loggin a user into tender using your sites login.
+            
+            username: the name of the user being logged in
+            email: the email of the user being logged in
+            unique_id: a unique id for this user (in case their name or email changes)
+            expires: time--in seconds--to keep a user logged into tender
+            trusted: if the spam filter should be bypassed
+            avatar_url: image to use for this users avatar
+            extras: anything else you may want to display about the user
+                 (example: {"admin_id": 5, "priority": "high"})
+            
+            via https://help.tenderapp.com/faqs/setup-installation/multipass
+        '''
+        data = {
+            'email': email or self.user_email,
+            'expires': (datetime.now()+timedelta(seconds=expires or 1209600)).strftime("%Y-%m-%dT%H:%M"),
+            'trusted': trusted
+        }
+        # if username:
+        #     data['name'] = username
+        # if unique_id or self.user_id:
+        #     data['unique_id'] = unique_id or self.user_id
+        # if avatar_url:
+        #     data['avatar_url'] = avatar_url
+        # if extras:
+        #     data['extras'] = extras
+        
+        return MultiPass(self.app_name, self.secret).encode(data)
+    
+    def multipass_url(self, tender_url, multipass):
+        return 'http://%s?sso=%s' % (tender_url, multipass)
     
     def profile(self):
         return TenderUser(self, self.raw_data.profile_href)
@@ -292,41 +314,37 @@ class TenderClient(object):
     def users(self):
         return TenderCollection(self, self.raw_data.users_href, TenderUser, 'users')
 
-    def create_discussion(self, title, body, category_id, author_email=None, author_name=None, public=True, skip_spam=True, **kwargs):
+    def create_discussion(self, title, body, category_id, author_email=None, public=True, **kwargs):
         '''
         creates discussion inside this category
         any additional data can be passed in keyword args
         '''
         url = build_url(self.raw_data['categories_href']) + '/%s/discussions' % category_id
         
-        payload = dict(title=title, body=body, public=public, skip_spam=skip_spam)
-        
-        if author_email:
-            payload['author_email'] = author_email
-        else:
-            payload['author_email'] = self.client.user
+        payload = {
+            'author_email': author_email or self.client.user_email,
+            'title':title,
+            'body':body,
+            'public':public
+        }
         
         #additional arguments
         payload.update(kwargs)
         
         return TenderDiscussion(self, raw_data=self.__get__(url, payload))
-
+    
     # The stuff that does the work...
     def _send_query(self, url, data=None):
         '''
         Send a query to Tender API
         '''
-        
         req = urllib2.Request(url=url)
         req.add_header('Accept', 'application/vnd.tender-v1+json')
-        req.add_header(
-            'Authorization', 'Basic %s' % b64encode('%s:%s' % (self.user, self.password))
-        )
+        req.add_header('X-Multipass', self.multipass())
+        
         if data:
             req.add_header('Content-Type', 'application/json')
             req.add_data(simplejson.dumps(data))
-        
-        #print req.get_method(), req.get_data(), req.get_full_url()
         
         f = urllib2.urlopen(req)
         return f.read()

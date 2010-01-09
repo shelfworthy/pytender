@@ -4,11 +4,11 @@ from tender import TenderClient
 
 TENDER_APP = ''
 USER_EMAIL = ''
-USER_PASSWORD = ''
+SECRET = ''
 
 class TenderTest(unittest.TestCase):
     def setUp(self):
-        self.tclient = TenderClient(app_name=TENDER_APP, user=USER_EMAIL, password=USER_PASSWORD)
+        self.tclient = TenderClient(app_name=TENDER_APP, user_email=USER_EMAIL, secret=SECRET)
 
     def test_connection(self):
         self.assertEquals(self.tclient.permalink, TENDER_APP)
