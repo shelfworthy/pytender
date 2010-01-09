@@ -290,8 +290,8 @@ class TenderClient(object):
         }
         if username:
             data['name'] = username
-        if unique_id or self.user_id:
-            data['unique_id'] = unique_id or self.user_id
+        # if unique_id or self.user_id:
+        #     data['unique_id'] = unique_id or self.user_id
         if avatar_url:
             data['avatar_url'] = avatar_url
         if extras:
@@ -299,6 +299,7 @@ class TenderClient(object):
         if alternate_id:
             data['alternate_id'] = alternate_id
         
+        print MultiPass(self.app_name, self.secret).encode(data)
         return MultiPass(self.app_name, self.secret).encode(data)
     
     def multipass_url(self, tender_url, multipass):
