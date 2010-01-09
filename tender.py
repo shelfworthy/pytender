@@ -267,7 +267,7 @@ class TenderClient(object):
         
         self.href = self.raw_data.href
     
-    def multipass(self, expires=None, username=None, email=None, unique_id=None, trusted=True, avatar_url=None, extras=None):
+    def multipass(self, expires=None, username=None, email=None, unique_id=None, trusted=True, avatar_url=None, extras=None, alternate_id=None):
         '''
             takes required (any any number of extra) args and creates a multipass url
             for loggin a user into tender using your sites login.
@@ -288,14 +288,16 @@ class TenderClient(object):
             'expires': (datetime.now()+timedelta(seconds=expires or 1209600)).strftime("%Y-%m-%dT%H:%M"),
             'trusted': trusted
         }
-        # if username:
-        #     data['name'] = username
-        # if unique_id or self.user_id:
-        #     data['unique_id'] = unique_id or self.user_id
-        # if avatar_url:
-        #     data['avatar_url'] = avatar_url
-        # if extras:
-        #     data['extras'] = extras
+        if username:
+            data['name'] = username
+        if unique_id or self.user_id:
+            data['unique_id'] = unique_id or self.user_id
+        if avatar_url:
+            data['avatar_url'] = avatar_url
+        if extras:
+            data['extras'] = extras
+        if alternate_id:
+            data['alternate_id'] = alternate_id
         
         return MultiPass(self.app_name, self.secret).encode(data)
     
