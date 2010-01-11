@@ -299,7 +299,6 @@ class TenderClient(object):
         if alternate_id:
             data['alternate_id'] = alternate_id
         
-        print MultiPass(self.app_name, self.secret).encode(data)
         return MultiPass(self.app_name, self.secret).encode(data)
     
     def multipass_url(self, tender_url, multipass):
