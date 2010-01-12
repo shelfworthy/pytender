@@ -267,7 +267,7 @@ class TenderClient(object):
         
         self.href = self.raw_data.href
     
-    def multipass(self, expires=None, username=None, email=None, unique_id=None, trusted=True, avatar_url=None, extras=None, alternate_id=None):
+    def multipass(self, expires=None, username=None, email=None, unique_id=None, trusted=True, avatar_url=None, alternate_id=None, **kw):
         '''
             takes required (any any number of extra) args and creates a multipass url
             for loggin a user into tender using your sites login.
@@ -279,7 +279,6 @@ class TenderClient(object):
             trusted: if the spam filter should be bypassed
             avatar_url: image to use for this users avatar
             extras: anything else you may want to display about the user
-                 (example: {"admin_id": 5, "priority": "high"})
             
             via https://help.tenderapp.com/faqs/setup-installation/multipass
         '''
@@ -288,16 +287,11 @@ class TenderClient(object):
             'expires': (datetime.now()+timedelta(seconds=expires or 1209600)).strftime("%Y-%m-%dT%H:%M"),
             'trusted': trusted
         }
-        if username:
-            data['name'] = username
-        # if unique_id or self.user_id:
-        #     data['unique_id'] = unique_id or self.user_id
-        if avatar_url:
-            data['avatar_url'] = avatar_url
-        if extras:
-            data['extras'] = extras
-        if alternate_id:
-            data['alternate_id'] = alternate_id
+        if unique_id or self.user_id:
+            data['unique_id'] = unique_id or self.user_id
+        data.update(kw)
+        
+        print data
         
         return MultiPass(self.app_name, self.secret).encode(data)
     
