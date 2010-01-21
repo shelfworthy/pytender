@@ -30,7 +30,7 @@ This app supports tender's multipass login. This currently works like so:
 
 ### you can then use the client to get a multipass login url:
 
-	>> tender.multipass_url('your_app.tenderapp.com', tender.multipass())
+	>> tender.multipass_url('http://your_app.tenderapp.com', tender.multipass())
 	http://your_app.tenderapp.com?sso=somemultipasshere
 
 ### this url can be used to the user with the email above to your tender site

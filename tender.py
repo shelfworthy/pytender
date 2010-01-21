@@ -294,7 +294,7 @@ class TenderClient(object):
         return MultiPass(self.app_name, self.secret).encode(data)
     
     def multipass_url(self, tender_url, multipass):
-        return 'http://%s?sso=%s' % (tender_url, multipass)
+        return '%s?sso=%s' % (tender_url, multipass)
     
     def profile(self):
         return TenderUser(self, self.raw_data.profile_href)
