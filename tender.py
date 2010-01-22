@@ -319,7 +319,8 @@ class TenderClient(object):
             'author_email': author_email or self.client.user_email,
             'title':title,
             'body':body,
-            'public':public
+            'public':public,
+            'via':self.app_name
         }
         
         #additional arguments
